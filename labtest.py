@@ -43,7 +43,7 @@ class ExecuteError(Exception):
     pass
 
 
-class SchizoPublicHtmlNotFoundError(Exception):
+class TestsFailedError(Exception):
     pass
 
 
@@ -317,8 +317,8 @@ def tester(project, force_gcc=False, time_limit=None):
         compile(force_gcc)
     except CompileFailedError:
         print()
-        print(f"ERROR: Project failed to compile")
-        return
+        print(color_wrap("ERROR: Project failed to compile", 31))
+        raise
 
     print()
     print("--- Running tests ---")
@@ -327,9 +327,8 @@ def tester(project, force_gcc=False, time_limit=None):
     print()
 
     if not passed:
-        print("Skipping export due to test errors or warnings")
-        print()
-        return
+        print(color_wrap("Skipping export due to test errors or warnings", 33))
+        raise TestsFailedError
 
     print("--- Exporting ---")
     print()
@@ -353,17 +352,15 @@ def tester(project, force_gcc=False, time_limit=None):
         print(f'scp "{getpass.getuser()}@schizo:{zip_abspath}" .')
         print()
 
-        if sys.stdin.isatty():
-            try:
-                input(
-                    "Press ctrl + c or enter to continue and delete temporary link... "
-                )
-            except KeyboardInterrupt:
-                # Some shells won't insert a newline, leaving things looking wonky
-                print()
-                return
-        else:
+        if not sys.stdin.isatty():
             print("Reading data from stdin, can't wait for user input")
+            return
+
+        try:
+            input("Press ctrl + c or enter to continue and delete temporary link... ")
+        except KeyboardInterrupt:
+            # Some shells won't insert a newline, leaving things looking wonky
+            print()
 
 
 if __name__ == "__main__":
@@ -387,4 +384,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    tester(args.project_number, force_gcc=args.gcc, time_limit=args.time_limit)
+    try:
+        tester(args.project_number, force_gcc=args.gcc, time_limit=args.time_limit)
+    except (
+        CompileFailedError,
+        TestsFailedError,
+        ExecuteError,
+        CompileSetupFailedError,
+    ) as e:
+        print(e)
+        exit(1)
