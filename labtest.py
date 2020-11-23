@@ -236,7 +236,7 @@ def run_all_test_cases(project, time_limit=None):
     )
 
     start_time = time.perf_counter()
-    passed = [t(project) for t in TEST_CASE_GROUPS]
+    passed = all([t(project) for t in TEST_CASE_GROUPS])
     elapsed = time.perf_counter() - start_time
     passed_time_limit = elapsed < effective_time_limit
 
