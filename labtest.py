@@ -291,9 +291,7 @@ def create_zip_schizo_link(project, filename):
     shutil.copy(OUTPUT_ZIP_FILE_NAME.format(project), passoff_file_path)
     os.chmod(passoff_file_path, 0o777)
 
-    return (
-        f"https://students.cs.byu.edu/~{getpass.getuser()}/labtest-passoffs/{passoff_filename}"
-    )
+    return f"https://students.cs.byu.edu/~{getpass.getuser()}/labtest-passoffs/{passoff_filename}"
 
 
 @atexit.register
