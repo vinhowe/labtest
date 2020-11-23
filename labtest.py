@@ -294,6 +294,28 @@ def create_zip_schizo_link(project, filename):
     return f"https://students.cs.byu.edu/~{getpass.getuser()}/labtest-passoffs/{passoff_filename}"
 
 
+def schizo_export(project, zip_abspath):
+    print("Creating temporary link for pass-off zip...")
+    passoff_link = create_zip_schizo_link(project, zip_abspath)
+
+    print()
+    print(color_wrap(passoff_link, 32))
+    print()
+    print("Or copy to your machine with:")
+    print(f'scp "{getpass.getuser()}@schizo:{zip_abspath}" .')
+    print()
+
+    if not sys.stdin.isatty():
+        print("Reading data from stdin, can't wait for user input")
+        return
+
+    try:
+        input("Press ctrl + c or enter to continue and delete temporary link... ")
+    except KeyboardInterrupt:
+        # Some shells won't insert a newline, leaving things looking wonky
+        print()
+
+
 @atexit.register
 def cleanup():
     if Path(TESTER_DIR).exists():
@@ -341,26 +363,7 @@ def tester(project, force_gcc=False, time_limit=None):
     if is_schizo():
         print("🌠 Detected BYU CS filesystem 🌠")
         print()
-
-        print("Creating temporary link for pass-off zip...")
-        passoff_link = create_zip_schizo_link(project, zip_abspath)
-
-        print()
-        print(color_wrap(passoff_link, 32))
-        print()
-        print("Or copy to your machine with:")
-        print(f'scp "{getpass.getuser()}@schizo:{zip_abspath}" .')
-        print()
-
-        if not sys.stdin.isatty():
-            print("Reading data from stdin, can't wait for user input")
-            return
-
-        try:
-            input("Press ctrl + c or enter to continue and delete temporary link... ")
-        except KeyboardInterrupt:
-            # Some shells won't insert a newline, leaving things looking wonky
-            print()
+        schizo_export(project, zip_abspath)
 
 
 if __name__ == "__main__":
