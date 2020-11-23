@@ -292,7 +292,7 @@ def create_zip_schizo_link(project, filename):
     os.chmod(passoff_file_path, 0o777)
 
     return (
-        f"https://students.cs.byu.edu/~{getpass.getuser()}/labtest-passoffs/{passoff_filename}",
+        f"https://students.cs.byu.edu/~{getpass.getuser()}/labtest-passoffs/{passoff_filename}"
     )
 
 
