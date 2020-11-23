@@ -359,6 +359,8 @@ def tester(project, force_gcc=False, time_limit=None):
                     "Press ctrl + c or enter to continue and delete temporary link... "
                 )
             except KeyboardInterrupt:
+                # Some shells won't insert a newline, leaving things looking wonky
+                print()
                 return
         else:
             print("Reading data from stdin, can't wait for user input")
