@@ -12,13 +12,17 @@ import uuid
 import getpass
 import argparse
 import atexit
+import urllib.request
 from pathlib import Path
 
 TESTER_DIR = ".labtest"
 PROJECT_EXECUTABLE_PATH = os.path.join(TESTER_DIR, "project.out")
 EXAMPLE_IO_PATH = os.path.join(TESTER_DIR, "exampleio")
 PASS_OFF_CASES_PATH = os.path.join(TESTER_DIR, "passoff")
-OUTPUT_ZIP_FILE_NAME = "project%d.zip"
+OUTPUT_ZIP_FILE_NAME = "project{:d}.zip"
+TESTS_ZIP_URL = "https://students.cs.byu.edu/~th443/cs236_files/{:s}"
+EXAMPLE_IO_ZIP_FILE_NAME = "project{:d}-exampleIO.zip"
+PASS_OFF_CASES_ZIP_FILE_NAME = "Lab{:d}PassOffCases.zip"
 PUBLIC_HTML_PATH = os.path.join(Path.home(), "public_html")
 SCHIZO_LINK_PASSOFFS_PATH = os.path.join(PUBLIC_HTML_PATH, "labtest_passoffs")
 DEFAULT_TEST_SUITE_TIME_LIMIT_S = 60
@@ -173,7 +177,14 @@ def test_example_io(project):
     print("Running example IO cases...")
     print()
 
-    zipfile.ZipFile(f"./project{project}-exampleIO.zip").extractall(EXAMPLE_IO_PATH)
+    example_io_zip_path = Path(EXAMPLE_IO_ZIP_FILE_NAME.format(project))
+
+    if not example_io_zip_path.exists():
+        print(f"{example_io_zip_path.name} not found, downloading...")
+        print()
+        urllib.request.urlretrieve(TESTS_ZIP_URL.format(example_io_zip_path.name), example_io_zip_path)
+
+    zipfile.ZipFile(example_io_zip_path).extractall(EXAMPLE_IO_PATH)
     test_file_pairs = test_files_mapping(EXAMPLE_IO_PATH, "in", "out")
 
     passed = run_test_cases_group(test_file_pairs)
@@ -181,7 +192,14 @@ def test_example_io(project):
 
 
 def test_pass_off(project):
-    zipfile.ZipFile(f"./Lab{project}PassOffCases.zip").extractall(PASS_OFF_CASES_PATH)
+    project_pass_off_zip_path = Path(PASS_OFF_CASES_ZIP_FILE_NAME.format(project))
+
+    if not project_pass_off_zip_path.exists():
+        print()
+        print(f"{project_pass_off_zip_path.name} not found, downloading...")
+        urllib.request.urlretrieve(TESTS_ZIP_URL.format(project_pass_off_zip_path.name), project_pass_off_zip_path)
+
+    zipfile.ZipFile(project_pass_off_zip_path).extractall(PASS_OFF_CASES_PATH)
     passoff_directories = os.listdir(PASS_OFF_CASES_PATH)
 
     passed = True
@@ -236,7 +254,7 @@ def run_all_test_cases(project, time_limit=None):
 
 def package(project):
     source_files = glob.glob("**.h") + glob.glob("**.cpp")
-    output_zip = zipfile.ZipFile(OUTPUT_ZIP_FILE_NAME % project, "w")
+    output_zip = zipfile.ZipFile(OUTPUT_ZIP_FILE_NAME.format(project), "w")
     for source_file in source_files:
         output_zip.write(source_file)
     output_zip.close()
@@ -265,7 +283,7 @@ def create_zip_schizo_link(project, filename):
     passoff_filename = f"{passoff_id}.zip"
     passoff_file_path = os.path.join(SCHIZO_LINK_PASSOFFS_PATH, passoff_filename)
 
-    shutil.copy(OUTPUT_ZIP_FILE_NAME % project, passoff_file_path)
+    shutil.copy(OUTPUT_ZIP_FILE_NAME.format(project), passoff_file_path)
     os.chmod(passoff_file_path, 0o777)
 
     return (
@@ -313,7 +331,7 @@ def tester(project, force_gcc=False, time_limit=None):
     print("--- Exporting ---")
     print()
 
-    zip_abspath = os.path.abspath(OUTPUT_ZIP_FILE_NAME % project)
+    zip_abspath = os.path.abspath(OUTPUT_ZIP_FILE_NAME.format(project))
     package(project)
     print(f"Writing zip to {zip_abspath}...")
     print()
