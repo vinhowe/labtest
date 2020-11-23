@@ -10,7 +10,7 @@ Only tested to work Fall 2020. Fork this project if you want to support a differ
 
 Just open `bash` or `fish` (if you don't know what I'm talking about, just use the `bash` command),
 `cd` to the directory containing source files for your project, and run the command listed
-for your shell
+for your shell:
 
 ### `bash`
 ```bash
