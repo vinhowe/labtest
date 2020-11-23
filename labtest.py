@@ -24,7 +24,7 @@ TESTS_ZIP_URL = "https://students.cs.byu.edu/~th443/cs236_files/{:s}"
 EXAMPLE_IO_ZIP_FILE_NAME = "project{:d}-exampleIO.zip"
 PASS_OFF_CASES_ZIP_FILE_NAME = "Lab{:d}PassOffCases.zip"
 PUBLIC_HTML_PATH = os.path.join(Path.home(), "public_html")
-SCHIZO_LINK_PASSOFFS_PATH = os.path.join(PUBLIC_HTML_PATH, "labtest_passoffs")
+SCHIZO_LINK_PASSOFFS_PATH = os.path.join(PUBLIC_HTML_PATH, "labtest-passoffs")
 DEFAULT_TEST_SUITE_TIME_LIMIT_S = 60
 
 # Change this as suits your setup
@@ -182,7 +182,9 @@ def test_example_io(project):
     if not example_io_zip_path.exists():
         print(f"{example_io_zip_path.name} not found, downloading...")
         print()
-        urllib.request.urlretrieve(TESTS_ZIP_URL.format(example_io_zip_path.name), example_io_zip_path)
+        urllib.request.urlretrieve(
+            TESTS_ZIP_URL.format(example_io_zip_path.name), example_io_zip_path
+        )
 
     zipfile.ZipFile(example_io_zip_path).extractall(EXAMPLE_IO_PATH)
     test_file_pairs = test_files_mapping(EXAMPLE_IO_PATH, "in", "out")
@@ -197,7 +199,10 @@ def test_pass_off(project):
     if not project_pass_off_zip_path.exists():
         print()
         print(f"{project_pass_off_zip_path.name} not found, downloading...")
-        urllib.request.urlretrieve(TESTS_ZIP_URL.format(project_pass_off_zip_path.name), project_pass_off_zip_path)
+        urllib.request.urlretrieve(
+            TESTS_ZIP_URL.format(project_pass_off_zip_path.name),
+            project_pass_off_zip_path,
+        )
 
     zipfile.ZipFile(project_pass_off_zip_path).extractall(PASS_OFF_CASES_PATH)
     passoff_directories = os.listdir(PASS_OFF_CASES_PATH)
@@ -287,7 +292,7 @@ def create_zip_schizo_link(project, filename):
     os.chmod(passoff_file_path, 0o777)
 
     return (
-        f"https://students.cs.byu.edu/~{getpass.getuser()}/passoffs/{passoff_filename}"
+        f"https://students.cs.byu.edu/~{getpass.getuser()}/labtest-passoffs/{passoff_filename}",
     )
 
 
@@ -295,7 +300,7 @@ def create_zip_schizo_link(project, filename):
 def cleanup():
     if Path(TESTER_DIR).exists():
         shutil.rmtree(TESTER_DIR)
-    if Path(SCHIZO_LINK_PASSOFFS_PATH).exists():
+    if Path(SCHIZO_LINK_PASSOFFS_PATH).exists() and sys.stdin.isatty():
         shutil.rmtree(SCHIZO_LINK_PASSOFFS_PATH)
 
 
@@ -350,10 +355,15 @@ def tester(project, force_gcc=False, time_limit=None):
         print(f'scp "{getpass.getuser()}@schizo:{zip_abspath}" .')
         print()
 
-        try:
-            input("Press ctrl + c or enter to continue and delete temporary link...")
-        except KeyboardInterrupt:
-            return
+        if sys.stdin.isatty():
+            try:
+                input(
+                    "Press ctrl + c or enter to continue and delete temporary link... "
+                )
+            except KeyboardInterrupt:
+                return
+        else:
+            print("Reading data from stdin, can't wait for user input")
 
 
 if __name__ == "__main__":
