@@ -330,7 +330,7 @@ def tester(project, force_gcc=False, time_limit=None):
     Path(os.path.abspath(TESTER_DIR)).mkdir(exist_ok=True)
 
     print()
-    print("🚀 Building and testing CS 236 project 4 🚀")
+    print(f"🚀 Building and testing CS 236 project {project} 🚀")
 
     try:
         print()
